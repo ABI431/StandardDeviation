@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Standard Deviation Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    h2 {
+      text-align: center;
+      color: #4a4a4a;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #edf2f7;
+      color: #333;
+    }
+
+    input[type="number"] {
+      width: 80px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px 0;
+      border: none;
+      border-radius: 8px;
+      background-color: #4f46e5;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #3730a3;
+    }
+
+    .output-section {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    .results {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #333;
+      margin-top: 15px;
+    }
+
+    .delete-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #e11d48;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Standard Deviation Calculator (Grouped Data)</h2>
+    <table id="input-table">
+      <thead>
+        <tr>
+          <th>Lower Limit</th>
+          <th>Upper Limit</th>
+          <th>Frequency (f)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="number" /></td>
+          <td><input type="number" /></td>
+          <td><input type="number" /></td>
+          <td><button class="delete-btn" onclick="deleteRow(this)">🗑️</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button onclick="addRow()">+ Add Row</button>
+    <button onclick="calculateSD()">Calculate SD</button>
+
+    <div class="output-section" id="output"></div>
+  </div>
+
+  <script>
+    function addRow() {
+      const table = document.querySelector("#input-table tbody");
+      const row = table.insertRow();
+      for (let i = 0; i < 3; i++) {
+        const cell = row.insertCell();
+        const input = document.createElement("input");
+        input.type = "number";
+        cell.appendChild(input);
+      }
+      const actionCell = row.insertCell();
+      actionCell.innerHTML = '<button class="delete-btn" onclick="deleteRow(this)">🗑️</button>';
+    }
+
+    function deleteRow(btn) {
+      const row = btn.closest("tr");
+      row.remove();
+    }
+
+    function calculateSD() {
+      const tableRows = document.querySelectorAll("#input-table tbody tr");
+      let lower = [], upper = [], freq = [], xi = [], fixi = [], fiximean2 = [];
+      let sumfi = 0, sumfixi = 0;
+
+      tableRows.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+        const l = parseFloat(inputs[0].value);
+        const u = parseFloat(inputs[1].value);
+        const f = parseFloat(inputs[2].value);
+        if (!isNaN(l) && !isNaN(u) && !isNaN(f)) {
+          lower.push(l);
+          upper.push(u);
+          freq.push(f);
+          const mid = (l + u) / 2;
+          xi.push(mid);
+          fixi.push(f * mid);
+          sumfi += f;
+          sumfixi += f * mid;
+        }
+      });
+
+      const mean = sumfixi / sumfi;
+
+      xi.forEach((mid, i) => {
+        const deviation = mid - mean;
+        fiximean2.push(freq[i] * deviation * deviation);
+      });
+
+      const sumFiximean2 = fiximean2.reduce((a, b) => a + b, 0);
+      const sd = Math.sqrt(sumFiximean2 / sumfi).toFixed(4);
+
+      // Display result table
+      let outputHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Class Interval</th>
+              <th>fi</th>
+              <th>xi</th>
+              <th>fi * xi</th>
+              <th>fi * (xi - mean)²</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      for (let i = 0; i < xi.length; i++) {
+        outputHTML += `
+          <tr>
+            <td>${lower[i]} - ${upper[i]}</td>
+            <td>${freq[i]}</td>
+            <td>${xi[i].toFixed(2)}</td>
+            <td>${fixi[i].toFixed(2)}</td>
+            <td>${fiximean2[i].toFixed(2)}</td>
+          </tr>`;
+      }
+
+      outputHTML += `</tbody></table>
+        <div class="results">
+          <p><strong>Mean = ${mean.toFixed(2)}</strong></p>
+          <p><strong>Standard Deviation = ${sd}</strong></p>
+        </div>`;
+
+      document.getElementById("output").innerHTML = outputHTML;
+    }
+  </script>
+</body>
+</html>
